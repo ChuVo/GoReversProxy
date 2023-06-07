@@ -1,0 +1,1 @@
+Proxy application for authorization and obtaining statistics of the CDNVideo service
