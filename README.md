@@ -5,3 +5,7 @@ Proxy application for authorization and obtaining statistics of the CDNVideo ser
 ```
 go run main.go
 ```
+
+```
+got run main.go --http="8083"
+```

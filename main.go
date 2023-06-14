@@ -13,7 +13,7 @@ func main() {
 	var (
 		httpAddr string
 	)
-	flag.StringVar(&httpAddr, "http", "localhost:8010", "The http `address` and port of the service")
+	flag.StringVar(&httpAddr, "http", "localhost:8083", "The http `address` and port of the service")
 	flag.Parse()
 
 	http.HandleFunc("/", handlerProxy)
@@ -24,7 +24,6 @@ func main() {
 }
 
 func handlerProxy(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 
@@ -46,7 +45,13 @@ func handlerProxy(w http.ResponseWriter, r *http.Request) {
 	query.Add("account", "cajivivi77")
 	r.URL.RawQuery = query.Encode()
 
-	u, _ := url.Parse("https://api.cdnvideo.ru/app/statistic/v3")
+	baseUrl := "https://api.cdnvideo.ru/app/statistic/v3"
+
+	if strings.HasPrefix(r.URL.String(), "/accounts") {
+		baseUrl = "https://api.cdnvideo.ru/app/inventory/v1"
+	}
+
+	u, _ := url.Parse(baseUrl)
 	proxy := httputil.NewSingleHostReverseProxy(u)
 	proxy.ServeHTTP(w, r)
 }
