@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -9,9 +10,15 @@ import (
 )
 
 func main() {
+	var (
+		httpAddr string
+	)
+	flag.StringVar(&httpAddr, "http", "localhost:8010", "The http `address` and port of the service")
+	flag.Parse()
+
 	http.HandleFunc("/", handlerProxy)
 
-	if err := http.ListenAndServe(":8083", nil); err != nil {
+	if err := http.ListenAndServe(httpAddr, nil); err != nil {
 		panic(err)
 	}
 }
