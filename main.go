@@ -24,7 +24,7 @@ func main() {
 }
 
 func handlerProxy(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	//w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 
@@ -48,8 +48,9 @@ func handlerProxy(w http.ResponseWriter, r *http.Request) {
 	baseUrl := "https://api.cdnvideo.ru/app/statistic/v3"
 
 	if strings.HasPrefix(r.URL.String(), "/accounts") {
-		w.Header().Del("Access-Control-Allow-Origin")
 		baseUrl = "https://api.cdnvideo.ru/app/inventory/v1"
+	} else {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 	}
 
 	u, _ := url.Parse(baseUrl)
