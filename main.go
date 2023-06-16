@@ -3,11 +3,19 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
 )
+
+func UUpdateResponse(r *http.Response) error {
+	fmt.Println("U1", r.Header.Values("Access-Control-Allow-Origin"))
+	r.Header.Set("Access-Control-Allow-Origin", "*")
+	fmt.Println("u2", r.Header.Values("Access-Control-Allow-Origin"))
+	return nil
+}
 
 func main() {
 	var (
@@ -16,19 +24,18 @@ func main() {
 	flag.StringVar(&httpAddr, "http", "localhost:8083", "The http `address` and port of the service")
 	flag.Parse()
 
-	http.HandleFunc("/", handlerProxy)
+	http.HandleFunc("/", HandlerProxy)
 
 	if err := http.ListenAndServe(httpAddr, nil); err != nil {
 		panic(err)
 	}
 }
 
-func handlerProxy(w http.ResponseWriter, r *http.Request) {
-	//w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-
+func HandlerProxy(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
@@ -49,12 +56,17 @@ func handlerProxy(w http.ResponseWriter, r *http.Request) {
 
 	if strings.HasPrefix(r.URL.String(), "/accounts") {
 		baseUrl = "https://api.cdnvideo.ru/app/inventory/v1"
-	} else {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
 	}
 
 	u, _ := url.Parse(baseUrl)
+	fmt.Println("header", r.Header.Values("Access-Control-Allow-Origin"))
+
 	proxy := httputil.NewSingleHostReverseProxy(u)
+	proxy.ModifyResponse = func(r *http.Response) error {
+		// Заголовок задается потому что при запросе cdn1 не добавляет заголовок, а cdn2 добавляет заголовок Access-Control-Allow-Origin
+		r.Header.Set("Access-Control-Allow-Origin", "*")
+		return nil
+	}
 	proxy.ServeHTTP(w, r)
 }
 
